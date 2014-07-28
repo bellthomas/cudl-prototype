@@ -22,6 +22,9 @@ public class EmergencieConfig {
 		
 		
 		//ExecuteAllConfigs
+		for(IEmergencieInstruction instrn :instructionSet) {
+			instrn.Execute(this);
+		}
 	}
 	
 	
