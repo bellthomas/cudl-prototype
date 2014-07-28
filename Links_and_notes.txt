@@ -1,3 +1,5 @@
 Server Side Connectivity : http://developer.android.com/training/building-connectivity.html
 
 http://stackoverflow.com/questions/4205980/java-sending-http-parameters-via-post-method-easily
+
+SMS tut - http://www.mkyong.com/android/how-to-send-sms-message-in-android/
