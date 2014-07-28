@@ -10,7 +10,9 @@ import com.yrs.emergencie.MainMenu;
 
 public class LocationUtil implements LocationListener{
 	
-	public Location best;
+	public static final LocationUtil instance = new LocationUtil();
+	
+	public Location best = null;
 	
 	public boolean isEnabled = false;
 	
