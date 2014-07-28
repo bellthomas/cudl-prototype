@@ -27,10 +27,10 @@ $db = new EmergencieDatabase;
  * Require Request Class and Instantiate
  */
 require_once('library/class.request.php');
+//$request = new EmergencieRequest('NearestGP');
 
 
-$request = new EmergencieRequest('LatLongToLocal');
-
+/*
 if($_GET['lat'] && $_GET['long']) {
 	//if($request->LatLongToPostCode(53.298056, -2.988281) === TRUE) {
 	$postcode = $request->LatLongToPostCode($_GET['lat'], $_GET['long']);
@@ -45,12 +45,14 @@ if($_GET['lat'] && $_GET['long']) {
 	else {
 		echo $postcode;	
 	}
-}
+}*/
+
+
 /*
  * Pass test data to Request object
- 
- 
-$emie_actions_test = array('LatLongToLocal', 'LatLongToLocal');
+ */ 
+ /*
+$emie_actions_test = array('LatLongToLocal', 'NearestHospital');
 $emie_parameters_test = array(
 	array('lat' => 53.298056, 'long' => -2.988281 ),	// Liverpool
 	array('lat' => 38.897676, 'long' => -77.036530 ),	// White House, Washington DC
@@ -94,8 +96,8 @@ function MainExecuteRequest($emie_actions, $emie_parameters) {
 			$$individual_output_name = $$individual_variable_name->Execute($$individual_request_url_name);
 			
 			echo '<h3>'.$i.'</h3>';
-			PrettyPrint(($$individual_variable_name));
-			PrettyPrint(($$individual_request_url_name));
+			//PrettyPrint(($$individual_variable_name));
+			//PrettyPrint(($$individual_request_url_name));
 			PrettyPrint(json_decode($$individual_output_name));
 			
 			$i++;
@@ -110,15 +112,15 @@ if(!$MainExecuted && isset($emie_actions_test) && isset($emie_parameters_test))
 
 
 /*
-$LatLongToLocal = new EmergencieRequest('LatLongToLocal');
-$parameters = array('lat' => 53.298056, 'long' => -2.988281 );
-$ResuestURL = $LatLongToLocal->RequestParameters($parameters);
-PrettyPrint($LatLongToLocal->Execute($ResuestURL));
+$LatLongToLocal = new EmergencieRequest('NearestHospital');
+$parameters = array('lat' => 38.897676, 'long' => -77.1 );
+$RequestURL = $LatLongToLocal->RequestParameters($parameters);
+PrettyPrint($LatLongToLocal->Execute($RequestURL));
 
 $request_notices = $LatLongToLocal->GetNotices();
-*/
 
-PrettyPrint($request_notices);
+
+PrettyPrint($request_notices);*/
 
 
 ShowNotices();

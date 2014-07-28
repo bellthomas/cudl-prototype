@@ -1,6 +1,8 @@
 <?php
 /**
  * Create Emergencie's Request Object.
+ *
+ * APIs used: GeonamesAPI (30,000/day, 2,000/hour), NHS Choices API, Google Places API (1,000/day)
  */
  
 class EmergencieRequest {
@@ -8,9 +10,14 @@ class EmergencieRequest {
 	public $request_type;
 	public $request_notices = NULL;
 	protected $allowed_request_types = array('LatLongToLocal',
+											 'NearestHospital'
 											);
 											
 	protected $geonames_username = 'harribellthomas';
+	protected $nhs_choices_api_key = 'MOJQXSAR';
+	protected $google_places_api_key = 'AIzaSyDjldgkVxqSiYuzuoIy9mbk1lIf0hsjdlE'; // har****@live.co.uk linked
+	
+	
 	public $translated_postcode = NULL; // null normally, but if lat/long to postcode conversion happens, this holds the return data.
 	
 	
@@ -81,7 +88,31 @@ class EmergencieRequest {
 				if($parameters) :
 					if(isset($parameters['lat']) && isset($parameters['long'])) {
 						if($this->AreLatAndLongValid($parameters['lat'], $parameters['long']))
-							$RequestURL = 'http://api.geonames.org/findNearbyPlaceNameJSON?lat='.$parameters["lat"].'&lng='.$parameters["long"];
+							$RequestURL = 'http://api.geonames.org/findNearbyPlaceNameJSON?lat='.$parameters["lat"].'&lng='.$parameters["long"]. '&username=' . $this->geonames_username;
+						else
+							$this->request_notices[] = 'LatLongToLocal - lat and long set but not valid.';	
+					} else {
+						$this->request_notices[] = 'LatLongToLocal - lat and long not set, but parameters variable passed.';	
+					}
+				else :
+					$this->request_notices[] = 'LatLongToLocal - no parameters set.';
+				endif;
+				break;
+
+
+
+
+		
+			/**
+	 		 * Case: NearestHospital
+			 *
+			 * @param float/integer $parameters['lat'] (Latitude for Request), float/integer $parameters['long'] (Longitude for Request)
+			 */
+			case 'NearestHospital' :
+				if($parameters) :
+					if(isset($parameters['lat']) && isset($parameters['long'])) {
+						if($this->AreLatAndLongValid($parameters['lat'], $parameters['long']))
+							$RequestURL = 'https://maps.googleapis.com/maps/api/place/search/json?types=hospital&location='.$parameters["lat"].','.$parameters["long"]. '&radius=500&sensor=false&key=' . $this->google_places_api_key;
 						else
 							$this->request_notices[] = 'LatLongToLocal - lat and long set but not valid.';	
 					} else {
@@ -93,8 +124,6 @@ class EmergencieRequest {
 				break;
 		
 		endswitch;
-		
-		if($RequestURL !== '') $RequestURL = $RequestURL . '&username=' . $this->geonames_username;
 		
 		return $RequestURL;
 	}
@@ -154,7 +183,7 @@ class EmergencieRequest {
 	 * @param float/integer $lat (Latitude), float/integer $long (Longitude)
 	 * @return TRUE if successful conversion, string if not. (NOTE to check for success need to use === )
 	 *
-	 * extension to do - cache conversion.
+	 * extension to do - cache the conversion.
 	 */
 
 	function LatLongToPostCode($lat, $long) {
