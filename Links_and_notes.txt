@@ -1,0 +1,1 @@
+Server Side Connectivity : http://developer.android.com/training/building-connectivity.html
