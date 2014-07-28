@@ -11,6 +11,7 @@ class EmergencieRequest {
 											);
 											
 	protected $geonames_username = 'harribellthomas';
+	public $translated_postcode = NULL; // null normally, but if lat/long to postcode conversion happens, this holds the return data.
 	
 	
 	/**
@@ -44,6 +45,18 @@ class EmergencieRequest {
 			return $this->request_notices;
 		else
 			return FALSE;
+	}
+
+
+
+	/**
+	 * Retrieve parameters
+	 *
+	 * @return depends on parameters...
+	 */
+	function GetParameter($name) {
+		if(isset($this->$name)) return $this->$name;
+		else return FALSE;
 	}
 
 
@@ -139,13 +152,20 @@ class EmergencieRequest {
 	 * Convert Latitude and Longitude to Postal Code
 	 *
 	 * @param float/integer $lat (Latitude), float/integer $long (Longitude)
-	 * @return TRUE if both params are valid, FALSE if not.
+	 * @return TRUE if successful conversion, string if not. (NOTE to check for success need to use === )
+	 *
+	 * extension to do - cache conversion.
 	 */
 
 	function LatLongToPostCode($lat, $long) {
 		if(isset($lat) && isset($long)) {
 			if( $this->AreLatAndLongValid($lat, $long) ) {
 				$RequestURL = 'http://api.geonames.org/findNearbyPostalCodesJSON?lat='.$lat.'&lng='.$long.'&username='. $this->geonames_username;
+				$return = json_decode($this->Execute($RequestURL));
+				$this->translated_postcode = $return->postalCodes[0];
+				return TRUE;
+			} else {
+				return 'Invalid Latitude and Longitude';	
 			}
 		} else { 
 			return 'Latitude and Longitude not set.';

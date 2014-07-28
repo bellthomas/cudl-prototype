@@ -27,9 +27,25 @@ $db = new EmergencieDatabase;
  * Require Request Class and Instantiate
  */
 require_once('library/class.request.php');
-//$request = new EmergencieRequest;
 
 
+$request = new EmergencieRequest('LatLongToLocal');
+
+if($_GET['lat'] && $_GET['long']) {
+	//if($request->LatLongToPostCode(53.298056, -2.988281) === TRUE) {
+	$postcode = $request->LatLongToPostCode($_GET['lat'], $_GET['long']);
+	if($postcode === TRUE) {
+		$postcode_data = ($request->GetParameter('translated_postcode'));
+		echo '<br>Latitude: ' . $postcode_data->lat;
+		echo '<br>Longitude: ' . $postcode_data->lng;
+		echo '<br>Postcode: ' . $postcode_data->postalCode;
+		echo '<br>Place Name: ' . $postcode_data->placeName;
+		echo '<br>Distance Away: ' . ($postcode_data->distance) * 1000 . 'm';
+	}
+	else {
+		echo $postcode;	
+	}
+}
 /*
  * Pass test data to Request object
  
