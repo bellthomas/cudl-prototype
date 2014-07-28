@@ -1,20 +1,16 @@
 package com.yrs.util;
 
-import com.yrs.emergencie.MainMenu;
-
 import android.content.Context;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.location.LocationProvider;
 import android.os.Bundle;
+
+import com.yrs.emergencie.MainMenu;
 
 public class LocationUtil implements LocationListener{
 	
-	public double latitude = 0;
-	public double longitude = 0;
-	public double altitude = 0;
-	public double accuracy = 0;
+	public Location best;
 	
 	public boolean isEnabled = false;
 	
@@ -39,7 +35,13 @@ public class LocationUtil implements LocationListener{
 	}
 	
 	
-	
+	public void DefaultPinPoint() {
+		Enable();
+		try {
+			Thread.sleep(10000);
+		} catch (InterruptedException e) {}
+		Disable();
+	}
 	
 	
 	
@@ -47,10 +49,18 @@ public class LocationUtil implements LocationListener{
 	
 	@Override
 	public void onLocationChanged(Location location) {
-		latitude = location.getLatitude();
-		longitude = location.getLongitude();
-		altitude = location.getAltitude();
-		accuracy = location.getAccuracy();
+		//Check if the new location falls outside of the old range
+		if((Math.pow(location.getLatitude() - best.getLatitude(),2)
+				+ Math.pow(location.getLongitude() - best.getLongitude(),2)) 
+				> Math.pow(location.getAccuracy() + best.getAccuracy(),2)) {
+					//Is a new location
+					best = location;
+		}else{
+			//Is similar - check which is better
+			if(location.getAccuracy() < best.getAccuracy()) {
+				best = location;
+			}
+		}
 	}
 
 	@Override
