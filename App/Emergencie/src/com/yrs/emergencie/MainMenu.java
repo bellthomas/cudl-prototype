@@ -19,12 +19,6 @@ public class MainMenu extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_menu);
         
-        //Test Hook IN
-        Test.PostTestServerUploadMessage("https://hbt.io?emergencie=true");
-        //while(true){
-        //	
-        //}
-        ////////////
         
     }
 
@@ -36,6 +30,16 @@ public class MainMenu extends Activity {
         return true;
     }
     
-    
+    @Override
+    protected void onStart() {
+    	super.onStart();
+    	
+    	 //Test Hook IN
+        Test.PostTestServerUploadMessage("https://hbt.io?emergencie=true");
+        //while(true){
+        //	
+        //}
+        ////////////
+    }
     
 }

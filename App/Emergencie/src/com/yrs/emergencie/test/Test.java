@@ -12,7 +12,7 @@ import com.yrs.util.ServerUtil;
 public class Test {
 	
 	public static void main(String[] params) {
-		PostTestServerUploadMessage("https://hbt.io?emergencie=true");
+		PostTestServerUploadMessage("http://emergencie.hbt.io");
 		//try {
 		//	ServerUtil.TestPost(null,null);
 		//} catch (IOException e) {
