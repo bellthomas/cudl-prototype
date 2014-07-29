@@ -15,10 +15,10 @@ class EmergencieDatabase {
 	
 	function __construct() {
 		
-		$this->database_host = 'db537596565.db.1and1.com';
-		$this->database_name = 'db537596565';
-		$this->database_user = 'dbo537596565';
-		$this->database_password = 'emErgency1984';
+		$this->database_host = MAIN_DB_HOST;
+		$this->database_name = MAIN_DB_NAME;
+		$this->database_user = MAIN_DB_USER;
+		$this->database_password = MAIN_DB_PASSWORD;
 		
 		try {
 			$pdo = new PDO("mysql:host=".$this->database_host.";dbname=".$this->database_name."", $this->database_user, $this->database_password);

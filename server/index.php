@@ -11,6 +11,9 @@ $MainExecuted = false;
 define(DEBUG, false);
 
 
+// Include credentials file
+require_once('git-ignore/credentials.php');
+
 /*
  * Include Helper Functions
  */
