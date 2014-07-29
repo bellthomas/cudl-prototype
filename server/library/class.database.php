@@ -10,15 +10,24 @@ class EmergencieDatabase {
 	public $database_name = '';
 	public $database_user = '';
 	public $database_password = '';
-	public $db_prefix = 'emergencie_';
+	public $db_prefix;
 	
 	
-	function __construct() {
-		
-		$this->database_host = MAIN_DB_HOST;
-		$this->database_name = MAIN_DB_NAME;
-		$this->database_user = MAIN_DB_USER;
-		$this->database_password = MAIN_DB_PASSWORD;
+	function __construct($db_name = 'main') {
+		if($db_name == 'main') {
+			$this->db_prefix = 'emergencie_';
+			$this->database_host = MAIN_DB_HOST;
+			$this->database_name = MAIN_DB_NAME;
+			$this->database_user = MAIN_DB_USER;
+			$this->database_password = MAIN_DB_PASSWORD;
+		}
+		elseif($db_name == 'heartbeat') {
+			$this->db_prefix = 'heartbeat_';
+			$this->database_host = HB_DB_HOST;
+			$this->database_name = HB_DB_NAME;
+			$this->database_user = HB_DB_USER;
+			$this->database_password = HB_DB_PASSWORD;
+		}
 		
 		try {
 			$pdo = new PDO("mysql:host=".$this->database_host.";dbname=".$this->database_name."", $this->database_user, $this->database_password);
@@ -83,6 +92,7 @@ class EmergencieDatabase {
 			
 		else {
 			$Notices[] = array("Table $table not successfully created!", time(), __FILE__);
+			//echo $columns;
 			//PrettyPrint($this->database_object->errorInfo());
 		}
 		// Result is either boolean FALSE (no table found) or PDOStatement Object (table found)
@@ -98,6 +108,7 @@ class EmergencieDatabase {
 		
 		$tables = array(
 			array(
+				'services' => array('emergencie_'),
 				'table_name' => $this->db_prefix . 'logs',
 				'columns' => 'ID INT( 11 ) AUTO_INCREMENT PRIMARY KEY' 
 							  /*'Prename VARCHAR( 50 ) NOT NULL, 
@@ -110,16 +121,25 @@ class EmergencieDatabase {
 							  Country VARCHAR( 50 ) NOT NULL'*/,
 			),
 			array(
+				'services' => array('emergencie_', 'heartbeat_'),
 				'table_name' => $this->db_prefix . 'system_logs',
 				'columns' => 'ID INT( 11 ) AUTO_INCREMENT PRIMARY KEY,
 							  SystemTime VARCHAR( 50 ) , 
 							  Message VARCHAR( 250 ),
 							  SystemFile VARCHAR( 50 ) ',
 			),
+			array(
+				'services' => array('heartbeat_'),
+				'table_name' => $this->db_prefix . 'data',
+				'columns' => 'ID INT( 11 ) AUTO_INCREMENT PRIMARY KEY,
+							  UniqueID VARCHAR( 50 ) , 
+							  Latitude VARCHAR( 50 ),
+							  Longitude VARCHAR( 50 ) ',
+			),
 		);
 		
 		foreach($tables as $table) {
-			if( !$this->TableExists($table['table_name']) )
+			if( !$this->TableExists($table['table_name']) && in_array($this->db_prefix, $table['services'], TRUE) )
 				$this->CreateTable($table['table_name'], $table['columns']);
 		}
 	}
@@ -144,7 +164,35 @@ class EmergencieDatabase {
 		}
 	}
 	
-	
+	/**
+	 * Method to add a data row to a table
+	 *
+	 * @return bool TRUE if no problems, FALSE if error occured.
+	 */
+	function HeartbeatUpdate($UID, $long = NULL, $lat = NULL) {
+		global $Notices;
+		if($this->db_prefix == 'heartbeat_') {
+			$db = $this->database_object;
+			$SQL = "SELECT `ID` FROM `".$this->db_prefix . 'data'."` WHERE `UniqueID` = ?";
+			$heartbeat = $db->prepare($SQL, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));	
+			$params = array($UID);
+			PrettyPrint($params);
+			$heartbeat->execute( $params );
+			$UIDExists = $heartbeat->FetchAll();
+			if($UIDExists) : 
+				// need to update existing entry
+				echo 'yes';
+				
+			else :
+				//doesn't exist, create
+				echo 'no';
+			endif;
+		}
+	}
+	 
+	 
+	 
+	 
 	function getAllTableData($table) {
 		$table = $this->db_prefix . $table;
             $query = $this->database_object->prepare("SELECT * FROM $table");
@@ -152,6 +200,9 @@ class EmergencieDatabase {
             return $query->fetchAll();
 	}
 	
+	function DataPrint() {
+		PrettyPrint($this);
+	}
 	 
  }
  

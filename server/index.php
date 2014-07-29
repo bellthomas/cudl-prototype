@@ -23,7 +23,7 @@ require_once('library/functions.helper.php');
  * Require DB Class and Instantiate
  */
 require_once('library/class.database.php');
-$db = new EmergencieDatabase;
+$db = new EmergencieDatabase('main');
 
 
 /*
