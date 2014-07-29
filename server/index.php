@@ -65,7 +65,7 @@ if($_GET['lat'] && $_GET['long']) {
 /*
  * Pass test data to Request object
  */ 
-
+/*
 $emie_actions_test = array( 'LatLongToLocal');
 $emie_parameters_test = array(
 	array('lat' => 51.820878, 'long' => -2.697587 ),	// Liverpool
@@ -73,7 +73,7 @@ $emie_parameters_test = array(
 
 PrettyPrint($emie_actions);
 PrettyPrint($emie_parameters);
-
+*/
 
 /*
  * Loop through data, creating instantiated objects

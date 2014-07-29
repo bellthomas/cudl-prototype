@@ -278,7 +278,6 @@ class EmergencieRequest {
 			case 'LatLongToLocal' : 
 			
 				$output = json_decode($output);
-				PrettyPrint($output);
 				$returndata['name'] = $output->geonames[0]->name; 
 				$returndata['distance'] = $output->geonames[0]->distance; //km
 				$returndata['countryName'] = $output->geonames[0]->countryName;
