@@ -1,6 +1,8 @@
 package com.jct.emergencie.network;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -27,19 +29,16 @@ public class HeartBeat {
 		return UUID.randomUUID();
 	}
 	
-	public long[] getUUIData() {
-		return new long[] {uuid.getMostSignificantBits(),uuid.getLeastSignificantBits()};
-	}
 	
 	public void runBeat() {
 		Map<String,Object> data = new HashMap<String,Object>();
-		data.put("Request_Type","type.heartbeat");
-		data.put("UUID",getUUIData());
-		data.put("lat",LocationUtil.instance.best.getLatitude());
-		data.put("long",LocationUtil.instance.best.getLongitude());
+		data.put("emie_heartbeat",new long[] {uuid.getMostSignificantBits(),uuid.getLeastSignificantBits()});
+		data.put("emie_location",new double[] {LocationUtil.instance.best.getLatitude(),LocationUtil.instance.best.getLongitude()});
 		try {
-			HttpResponse response= ServerUtil.Post("//TODO getURL",data);
+			HttpResponse response= ServerUtil.Post("http://emergencie.hbt.io/heartbeat",data);
 			HttpEntity entity = response.getEntity();
+			InputStream stream = entity.getContent();
+			BufferedInputStream buffIn = new BufferedInputStream(stream);
 			
 			
 		} catch (ClientProtocolException e) {
