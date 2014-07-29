@@ -29,3 +29,57 @@ s         UUID                   = time-low "-" time-mid "-"
                 "a" / "b" / "c" / "d" / "e" / "f" /
                 "A" / "B" / "C" / "D" / "E" / "F"
 </PRE>
+
+
+
+
+//Code for client > server communication
+
+
+
+@SuppressWarnings("deprecation")
+	public static String JsonToUrl(String url,Map<String,Object> data) throws JSONException, IOException { //Version for android
+		//Calculate the url to visit
+		
+		JSONObject json = new JSONObject();
+		for(String key : data.keySet()) {
+			json.put(key, data.get(key));
+		}
+		String encodedJSON = URLEncoder.encode(json.toString());
+		URL visit = new URL(url + encodedJSON);
+		
+		//Open connections
+		
+		URLConnection conn = visit.openConnection();
+		conn.connect();
+		InputStream stream = conn.getInputStream();
+		
+		//Read stream
+		
+		int nRead;
+		byte[] bytes = new byte[16384];
+		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+		while ((nRead = stream.read(bytes, 0, bytes.length)) != -1) {
+		  buffer.write(bytes, 0, nRead);
+		}
+		buffer.flush();
+		
+		//Parse response to string
+		
+		String out = "";
+		for(byte BYTE : buffer.toByteArray()) {
+			out = out + ((char)BYTE);
+		}
+		
+		
+		return out;
+	}
+
+
+
+
+
+
+
+
