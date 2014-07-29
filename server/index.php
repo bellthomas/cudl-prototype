@@ -66,10 +66,9 @@ if($_GET['lat'] && $_GET['long']) {
  * Pass test data to Request object
  */ 
 
-$emie_actions_test = array('postalCodeLookup', 'GetArticlesAboutMedicalCondition');
+$emie_actions_test = array( 'LatLongToLocal');
 $emie_parameters_test = array(
-	array('lat' => 53.298056, 'long' => -2.988281 ),	// Liverpool
-	array('search' => 'epilepsy' ),	// White House, Washington DC
+	array('lat' => 51.820878, 'long' => -2.697587 ),	// Liverpool
 );
 
 PrettyPrint($emie_actions);
@@ -104,36 +103,23 @@ function MainExecuteRequest($emie_actions, $emie_parameters) {
 			
 			
 			//create individual output variable name
+			$individual_raw_output_name = $individual_variable_name . '_output_raw';
+			
+			//get execute return, assign to unique variable
+			$$individual_raw_output_name = $$individual_variable_name->Execute($$individual_request_url_name);
+			
+			//create individual output variable name
 			$individual_output_name = $individual_variable_name . '_output';
 			
 			//get execute return, assign to unique variable
-			$$individual_output_name = $$individual_variable_name->Execute($$individual_request_url_name);
+			$$individual_output_name = $$individual_variable_name->GenerateOutput($$individual_raw_output_name);
 			
 			echo '<h3>'.$i.'</h3>';
 			//PrettyPrint(($$individual_variable_name));
 			//PrettyPrint(($$individual_request_url_name));
-			PrettyPrint(($$individual_variable_name->returnVariable('translated_postcode')));
-			PrettyPrint(($$individual_variable_name->GetNotices()));
+			PrettyPrint($$individual_output_name);
+			PrettyPrint($$individual_variable_name->GetNotices());
 			
-			json_decode($$individual_output_name);
-			if(json_last_error() == JSON_ERROR_NONE) {
-				PrettyPrint(json_decode($$individual_output_name));
-			} 
-			elseif($emie_actions[$i] == 'GetArticlesAboutMedicalCondition') { //is xml
-				$p = xml_parser_create();
-				xml_parse_into_struct($p, $$individual_output_name, $vals, $index);
-				xml_parser_free($p);
-				$i = $articles = 0;
-				$documents = array();
-				while($articles <= 3) :
-					if($vals[$i]['tag'] == 'DOCUMENT' && isset($vals[$i]['attributes']) && filter_var($vals[$i]['attributes']['URL'], FILTER_VALIDATE_URL)){
-						$documents[] = $vals[$i]['attributes']['URL'];
-						$articles++;
-					}
-					$i++;
-				endwhile;
-				PrettyPrint($documents);
-			}
  
 			
 			$i++;

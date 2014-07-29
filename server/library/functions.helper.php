@@ -16,3 +16,7 @@ function ShowNotices() {
 	if(DEBUG) 
 		PrettyPrint($GLOBALS['Notices']);
 }
+
+function compareByName($a, $b, $key = 'distance') {
+	return strcmp($a[$key], $b[$key]);
+}

@@ -314,7 +314,7 @@ class EmergencieDatabase {
 	 
 	function CalculateDistanceLatLong($lon1, $lat1, $lon2, $lat2) {
 		
-		if($this->LatLongValid($lat, $long)) : 
+		if($this->LatLongValid($lat1, $lon1) && $this->LatLongValid($lat2, $lon2)) : 
 			//Algorithm to calculate distance between 2 sets of points (lat and long)
 			$theta = $lon1 - $lon2;
 			$dist = sin(deg2rad($lat1)) * sin(deg2rad($lat2)) +  cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * cos(deg2rad($theta));
