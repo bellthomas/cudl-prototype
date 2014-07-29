@@ -78,7 +78,32 @@ s         UUID                   = time-low "-" time-mid "-"
 
 
 
+//HeartBeat stuff
 
+
+public boolean runBeat() {
+		//TODO ensure location
+		//TEst
+		LocationUtil.DefaultPinPoint();
+		//TODO remove ping later and incorporate
+		Map<String,Object> data = new HashMap<String,Object>();
+		data.put("emie_heartbeat",new long[] {uuid.getMostSignificantBits(),uuid.getLeastSignificantBits()});
+		data.put("emie_location",new double[] {LocationUtil.instance.best.getLatitude(),LocationUtil.instance.best.getLongitude()});
+		try {
+			String response = ServerUtil.JsonToUrl("http://emergencie.hbt.io/heartbeat?emie_heartbeat=", data);
+			
+			//TODO handle the response from the server
+			
+			return true;
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+		} catch (JSONException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
 
 
 
