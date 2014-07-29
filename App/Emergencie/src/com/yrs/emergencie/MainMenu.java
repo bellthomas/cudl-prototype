@@ -1,9 +1,7 @@
 package com.yrs.emergencie;
 
-import com.yrs.emergencie.test.Test;
-
-import android.os.Bundle;
 import android.app.Activity;
+import android.os.Bundle;
 import android.view.Menu;
 
 public class MainMenu extends Activity {
@@ -35,7 +33,7 @@ public class MainMenu extends Activity {
     	super.onStart();
     	
     	 //Test Hook IN
-        Test.PostTestServerUploadMessage("https://hbt.io?emergencie=true");
+        //Test.PostTestServerUploadMessage("https://hbt.io?emergencie=true");
         //while(true){
         //	
         //}
