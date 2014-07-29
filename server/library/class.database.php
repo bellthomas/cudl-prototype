@@ -196,15 +196,12 @@ class EmergencieDatabase {
 				
 			elseif($this->LatLongValid($lat, $long)) :
 				//doesn't exist, create
-				//echo '2';
-				// need to update existing entry
 				$SQL = "INSERT INTO ".$this->db_prefix . "data (ID, UniqueID, Latitude, Longitude) VALUES (NULL, ?, ?, ?)";
 				$heartbeat_action = $db->prepare($SQL, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));	
 				$params = array($UID, $lat, $long);
 				if($heartbeat_action->execute( $params )) return TRUE;
 				else return FALSE;
 				//PrettyPrint($heartbeat_action->errorInfo());
-				//$UIDExists = $heartbeat->FetchAll();
 
 			else:
 				return FALSE;

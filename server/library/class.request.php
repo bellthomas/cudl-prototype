@@ -13,9 +13,9 @@ class EmergencieRequest {
 											 'NearestHospital'
 											);
 											
-	protected $geonames_username = 'harribellthomas';
-	protected $nhs_choices_api_key = 'MOJQXSAR';
-	protected $google_places_api_key = 'AIzaSyDjldgkVxqSiYuzuoIy9mbk1lIf0hsjdlE'; // har****@live.co.uk linked
+	protected $geonames_username = GEONAMES_USERNAME;
+	protected $nhs_choices_api_key = NHS_KEY;
+	protected $google_places_api_key = PLACES_API; 
 	
 	
 	public $translated_postcode = NULL; // null normally, but if lat/long to postcode conversion happens, this holds the return data.
