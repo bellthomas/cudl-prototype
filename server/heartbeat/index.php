@@ -18,14 +18,16 @@ require_once('../library/functions.helper.php');
 require_once('../library/class.database.php');
 $hb_db = new EmergencieDatabase('heartbeat');
 
-$hb_db->HeartbeatUpdate(23456);
+if($hb_db->HeartbeatUpdate(84756, 3, 87)) echo 'Heartbeat successful.';
+else echo 'error';
 
+if( isset($_REQUEST['emie_heartbeat']) /*&& isset($_REQUEST['UID']) && isset($_REQUEST['lat']) && isset($_REQUEST['long'])*/ ) :
 
-if( isset($_REQUEST['emie_heartbeat']) && isset($_REQUEST['UID']) && isset($_REQUEST['lat']) && isset($_REQUEST['long'])) :
+echo 'good';
 
+else: 
 
-
-
+//echo 'bad';
 endif;
 
 

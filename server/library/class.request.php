@@ -167,9 +167,9 @@ class EmergencieRequest {
 	function AreLatAndLongValid($lat, $long) {
 		$valid = true; // innocent until proved guilty
 		
-		if(!is_numeric($lat) || (int)$lat > 90 || (int)$lat < -90 )
+		if(!is_numeric($lat) || floatval($lat) > 90 || floatval($lat) < -90 )
 			$valid = false;
-		if(!is_numeric($long) || (int)$long > 180 || (int)$long < -180 )
+		if(!is_numeric($long) || floatval($long) > 180 || floatval($long) < -180 )
 			$valid = false;
 			
 		return $valid;

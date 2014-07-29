@@ -169,23 +169,45 @@ class EmergencieDatabase {
 	 *
 	 * @return bool TRUE if no problems, FALSE if error occured.
 	 */
-	function HeartbeatUpdate($UID, $long = NULL, $lat = NULL) {
+	function HeartbeatUpdate($UID, $lat, $long) {
 		global $Notices;
 		if($this->db_prefix == 'heartbeat_') {
 			$db = $this->database_object;
 			$SQL = "SELECT `ID` FROM `".$this->db_prefix . 'data'."` WHERE `UniqueID` = ?";
 			$heartbeat = $db->prepare($SQL, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));	
 			$params = array($UID);
-			PrettyPrint($params);
 			$heartbeat->execute( $params );
 			$UIDExists = $heartbeat->FetchAll();
-			if($UIDExists) : 
+			
+			
+			if($UIDExists && $this->LatLongValid($lat, $long)) : 
+				$index = $UIDExists[0]['ID'];
+
 				// need to update existing entry
-				echo 'yes';
+				$SQL = "UPDATE ".$this->db_prefix . 'data'." SET Latitude=?, Longitude=? WHERE ID='".$index."'";
+				$heartbeat_action = $db->prepare($SQL, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));	
+				$params = array($lat, $long);
+
+				if($heartbeat_action->execute( $params )) return TRUE;
+				else return FALSE;
+				//$UIDExists = $heartbeat->FetchAll();
 				
-			else :
+				
+				
+			elseif($this->LatLongValid($lat, $long)) :
 				//doesn't exist, create
-				echo 'no';
+				//echo '2';
+				// need to update existing entry
+				$SQL = "INSERT INTO ".$this->db_prefix . "data (ID, UniqueID, Latitude, Longitude) VALUES (NULL, ?, ?, ?)";
+				$heartbeat_action = $db->prepare($SQL, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));	
+				$params = array($UID, $lat, $long);
+				if($heartbeat_action->execute( $params )) return TRUE;
+				else return FALSE;
+				//PrettyPrint($heartbeat_action->errorInfo());
+				//$UIDExists = $heartbeat->FetchAll();
+
+			else:
+				return FALSE;
 			endif;
 		}
 	}
@@ -202,6 +224,17 @@ class EmergencieDatabase {
 	
 	function DataPrint() {
 		PrettyPrint($this);
+	}
+	
+	function LatLongValid($lat, $long) {
+		$valid = true; // innocent until proved guilty
+		
+		if(!is_numeric($lat) || floatval($lat) > 90 || floatval($lat) < -90 )
+			$valid = false;
+		if(!is_numeric($long) || floatval($long) > 180 || floatval($long) < -180 )
+			$valid = false;
+			
+		return $valid;
 	}
 	 
  }
