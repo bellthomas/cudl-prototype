@@ -2,7 +2,9 @@
 /**
  * Create Emergencie's Request Object.
  *
- * APIs used: GeonamesAPI (30,000/day, 2,000/hour), NHS Choices API, Google Places API (1,000/day)
+ * APIs used: GeonamesAPI (30,000/day, 2,000/hour), NHS Choices API, Google Places API (1,000/day), MedlinePlus
+ *
+ * @author Harri Bell-Thomas < @harribellthomas >
  */
  
 class EmergencieRequest {
@@ -10,7 +12,8 @@ class EmergencieRequest {
 	public $request_type;
 	public $request_notices = NULL;
 	protected $allowed_request_types = array('LatLongToLocal',
-											 'NearestHospital'
+											 'NearestHospital',
+											 'GetArticlesAboutMedicalCondition'
 											);
 											
 	protected $geonames_username = GEONAMES_USERNAME;
@@ -30,7 +33,7 @@ class EmergencieRequest {
 	function __construct( $type ) {
 		
 		// If no database connection, abort.
-		if(!$GLOBALS['db'])
+		if(!$GLOBALS['db'] )
 			exit();
 			
 		if(in_array($type, $this->allowed_request_types)) {
@@ -122,8 +125,32 @@ class EmergencieRequest {
 					$this->request_notices[] = 'LatLongToLocal - no parameters set.';
 				endif;
 				break;
+
+
+		
+			/**
+	 		 * Case: GetArticlesAboutMedicalCondition
+			 *
+			 * @param string $search (Topic to Search for)
+			 */
+			case 'GetArticlesAboutMedicalCondition' :
+				if($parameters) :
+					if(isset($parameters['search'])) {
+						$RequestURL = 'http://wsearch.nlm.nih.gov/ws/query?db=healthTopics&term='.urlencode($parameters["search"]); 
+						echo $RequestURL;
+					} else {
+						$this->request_notices[] = 'GetArticlesAboutMedicalCondition - search not set, but parameters variable passed.';	
+					}
+				else :
+					$this->request_notices[] = 'GetArticlesAboutMedicalCondition - no parameters set.';
+				endif;
+				break;
+
+
 		
 		endswitch;
+		
+	
 		
 		return $RequestURL;
 	}
@@ -192,6 +219,7 @@ class EmergencieRequest {
 				$RequestURL = 'http://api.geonames.org/findNearbyPostalCodesJSON?lat='.$lat.'&lng='.$long.'&username='. $this->geonames_username;
 				$return = json_decode($this->Execute($RequestURL));
 				$this->translated_postcode = $return->postalCodes[0];
+				//PrettyPrint($this->translated_postcode);
 				return TRUE;
 			} else {
 				return 'Invalid Latitude and Longitude';	
@@ -199,6 +227,10 @@ class EmergencieRequest {
 		} else { 
 			return 'Latitude and Longitude not set.';
 		} 
+	}
+	
+	function returnVariable($name) {
+		return $this->$name;	
 	}
 		
 }

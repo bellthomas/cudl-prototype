@@ -8,7 +8,13 @@ global $db;
 global $MainExecuted;
 $MainExecuted = false;
 
-define(DEBUG, false);
+define(DEBUG, true);
+
+/*
+ * Include and Init Performance Monitor
+ */
+require_once('library/class.performance.php');
+$Performance = new Performance;
 
 
 // Include credentials file
@@ -20,18 +26,23 @@ require_once('git-ignore/credentials.php');
 require_once('library/functions.helper.php');
 
 /*
- * Require DB Class and Instantiate
+ * Require DB and Request Class and Instantiate
  */
 require_once('library/class.database.php');
+require_once('library/class.request.php');
+
 $db = new EmergencieDatabase('main');
 
 
 /*
- * Require Request Class and Instantiate
+ * Instantiate Request Class
  */
-require_once('library/class.request.php');
-//$request = new EmergencieRequest('NearestGP');
+//$request = new EmergencieRequest('postalCodeLookup');
 
+//PrettyPrint(json_decode($output));
+
+
+//PrettyPrint($request->GetNotices);
 
 /*
 if($_GET['lat'] && $_GET['long']) {
@@ -54,16 +65,16 @@ if($_GET['lat'] && $_GET['long']) {
 /*
  * Pass test data to Request object
  */ 
- /*
-$emie_actions_test = array('LatLongToLocal', 'NearestHospital');
+
+$emie_actions_test = array('postalCodeLookup', 'GetArticlesAboutMedicalCondition');
 $emie_parameters_test = array(
 	array('lat' => 53.298056, 'long' => -2.988281 ),	// Liverpool
-	array('lat' => 38.897676, 'long' => -77.036530 ),	// White House, Washington DC
+	array('search' => 'epilepsy' ),	// White House, Washington DC
 );
 
 PrettyPrint($emie_actions);
 PrettyPrint($emie_parameters);
-*/
+
 
 /*
  * Loop through data, creating instantiated objects
@@ -101,7 +112,29 @@ function MainExecuteRequest($emie_actions, $emie_parameters) {
 			echo '<h3>'.$i.'</h3>';
 			//PrettyPrint(($$individual_variable_name));
 			//PrettyPrint(($$individual_request_url_name));
-			PrettyPrint(json_decode($$individual_output_name));
+			PrettyPrint(($$individual_variable_name->returnVariable('translated_postcode')));
+			PrettyPrint(($$individual_variable_name->GetNotices()));
+			
+			json_decode($$individual_output_name);
+			if(json_last_error() == JSON_ERROR_NONE) {
+				PrettyPrint(json_decode($$individual_output_name));
+			} 
+			elseif($emie_actions[$i] == 'GetArticlesAboutMedicalCondition') { //is xml
+				$p = xml_parser_create();
+				xml_parse_into_struct($p, $$individual_output_name, $vals, $index);
+				xml_parser_free($p);
+				$i = $articles = 0;
+				$documents = array();
+				while($articles <= 3) :
+					if($vals[$i]['tag'] == 'DOCUMENT' && isset($vals[$i]['attributes']) && filter_var($vals[$i]['attributes']['URL'], FILTER_VALIDATE_URL)){
+						$documents[] = $vals[$i]['attributes']['URL'];
+						$articles++;
+					}
+					$i++;
+				endwhile;
+				PrettyPrint($documents);
+			}
+ 
 			
 			$i++;
 		}
@@ -125,6 +158,6 @@ $request_notices = $LatLongToLocal->GetNotices();
 
 PrettyPrint($request_notices);*/
 
-
+$ProcessingTime = $Performance->EndOfScript();
 ShowNotices();
 $db->AddSystemNoticesToLog();
