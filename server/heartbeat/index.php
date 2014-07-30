@@ -49,12 +49,12 @@ if( isset($_REQUEST['emie_heartbeat']) ) :
 
 	$request_data = json_decode($_REQUEST['emie_heartbeat']);
 	
-	//PrettyPrint($request_data);
+	PrettyPrint($request_data);
 	
 	//$request_data->emie_heartbeat;  // array, 2 values, uuid stuff
 	//$request_data->emie_location;  // array, 2 values, lat and long
 	
-	
+	PrettyPrint();
 	if($db->HeartbeatUpdate($request_data->emie_id[0] . $request_data->emie_id[1], 
 	$request_data->emie_location[0], 
 	$request_data->emie_location[1])) echo 1;
@@ -78,12 +78,12 @@ elseif( isset($_REQUEST['emie_heartbeat_set_alert']) ) :
 	if($alert_number = $db->CreateNewHeartbeatAlert($request_data->emie_personal, $request_data->emie_location, $request_data->emie_id)) {
 
 		if($users = $db->HeartbeatMatrix($request_data->emie_location[0], $request_data->emie_location[1])) { 
-			echo $alert_number;
-			PrettyPrint($users);
+			//echo $alert_number;
+			//PrettyPrint($users);
 			foreach($users as $user)
 				$db->AddNewAlertToUser($user['ID'], $user['UniqueID'], $alert_number);
 		
-			//echo 1;
+			echo 1;
 		
 		
 		} else echo 0;

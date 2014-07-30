@@ -139,7 +139,8 @@ class EmergencieDatabase {
 							  Longitude VARCHAR( 50 ),
 							  CountryCode VARCHAR( 8 ),
 							  Region VARCHAR( 50 ), 
-							  Alerts VARCHAR( 50 )',
+							  Alerts VARCHAR( 50 ),
+							  SystemTime VARCHAR( 50 )',
 			),
 			array(
 				'services' => array('heartbeat_'),
@@ -187,7 +188,7 @@ class EmergencieDatabase {
 	 */
 	function HeartbeatUpdate($UID, $lat, $long) {
 		global $Notices;
-		if($this->db_prefix == 'heartbeat_') {
+		if($this->db_prefix == 'heartbeat_' && trim($UID) !== '') {
 			$db = $this->database_object;
 			$SQL = "SELECT `ID` FROM `".$this->db_prefix . 'data'."` WHERE `UniqueID` = ?";
 			$heartbeat = $db->prepare($SQL, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));	
@@ -208,9 +209,9 @@ class EmergencieDatabase {
 
 
 				// need to update existing entry
-				$SQL = "UPDATE ".$this->db_prefix . 'data'." SET Latitude=?, Longitude=?, Region=?, CountryCode=? WHERE ID='".$index."'";
+				$SQL = "UPDATE ".$this->db_prefix . 'data'." SET Latitude=?, Longitude=?, Region=?, CountryCode=?, SystemTime=? WHERE ID='".$index."'";
 				$heartbeat_action = $db->prepare($SQL, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));	
-				$params = array($lat, $long, $region, $ccode);
+				$params = array($lat, $long, $region, $ccode, time());
 
 				if($heartbeat_action->execute( $params )) return TRUE;
 				else return FALSE;
@@ -230,15 +231,15 @@ class EmergencieDatabase {
 
 
 				//doesn't exist, create
-				$SQL = "INSERT INTO ".$this->db_prefix . "data (ID, UniqueID, Latitude, Longitude, CountryCode, Region) VALUES (NULL, ?, ?, ?, ?, ?)";
+				$SQL = "INSERT INTO ".$this->db_prefix . "data (ID, UniqueID, Latitude, Longitude, CountryCode, Region, SystemTime) VALUES (NULL, ?, ?, ?, ?, ?, ?)";
 				$heartbeat_action = $db->prepare($SQL, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));	
-				$params = array($UID, $lat, $long, $ccode, $region);
+				$params = array($UID, $lat, $long, $ccode, $region, time());
 				if($heartbeat_action->execute( $params )) return TRUE;
 				else return FALSE;
 				//PrettyPrint($heartbeat_action->errorInfo());
 
 			else:
-				return FALSE;
+				return FALSE; // not heartbeat db or no uid
 			endif;
 		}
 	}
@@ -275,7 +276,7 @@ class EmergencieDatabase {
 	 * @return string array $locations_array if users are found, FALSE if not.
 	 */
 	 
-	function HeartbeatMatrix($lat, $long, $radius = 1) {
+	function HeartbeatMatrix($lat, $long, $radius = 0.5) {
 		if($this->LatLongValid($lat, $long)) : 
 			$db = $this->database_object;
 				
@@ -332,47 +333,44 @@ class EmergencieDatabase {
 	
 	
 	function CreateNewHeartbeatAlert($personal_data, $location, $id) {
-		
-		$db = $this->database_object;
-		if(is_array($personal_data) && is_array($location)) {
-			$OldCheck = "SELECT MAX(Time) FROM ".$this->db_prefix . "alerts WHERE UniqueID=?;";
-			$heartbeat_old_alerts = $db->prepare($OldCheck, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));
-			$id = $id[0].$id[1];
-			$params = array($id);
-			if($get_old_alerts = $heartbeat_old_alerts->execute( $params )) {
-				$old_time = $heartbeat_old_alerts->fetch();
-				$new_time = time();
-				$time_difference = $new_time - $old_time[0];
-				if($time_difference > 1200 /* 20 minutes */) {
-					$SQL = "INSERT INTO ".$this->db_prefix . "alerts (ID, Name, Gender, Latitude, Longitude, Time, UniqueID) VALUES (NULL, ?, ?, ?, ?, ?, ?); SELECT LAST_INSERT_ID();";
-					$heartbeat_alert = $db->prepare($SQL, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));
-					$gender = strtoupper($personal_data[1]);
-					$params = array($personal_data[0], $gender, $location[0], $location[1], time(), $id);
-					if($heartbeat_alert->execute( $params )) return $db->lastInsertId();
-					else return FALSE;
-				} else return ($get_old_alerts); // last alert from this device not long ago enough
+		$id = $id[0].$id[1];
+		if(trim($id) !== '') {
+			$db = $this->database_object;
+			if(is_array($personal_data) && is_array($location)) {
+				$OldCheck = "SELECT MAX(Time) FROM ".$this->db_prefix . "alerts WHERE UniqueID=?;";
+				$heartbeat_old_alerts = $db->prepare($OldCheck, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));
+				$params = array($id);
+				if($get_old_alerts = $heartbeat_old_alerts->execute( $params )) {
+					$old_time = $heartbeat_old_alerts->fetch();
+					$new_time = time();
+					$time_difference = $new_time - $old_time[0];
+					if($time_difference > 1200 /* 20 minutes */) {
+						$SQL = "INSERT INTO ".$this->db_prefix . "alerts (ID, Name, Gender, Latitude, Longitude, Time, UniqueID) VALUES (NULL, ?, ?, ?, ?, ?, ?); SELECT LAST_INSERT_ID();";
+						$heartbeat_alert = $db->prepare($SQL, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));
+						$gender = strtoupper($personal_data[1]);
+						$params = array($personal_data[0], $gender, $location[0], $location[1], time(), $id);
+						if($heartbeat_alert->execute( $params )) return $db->lastInsertId();
+						else return FALSE;
+					} else return FALSE; // last alert from this device not long ago enough
+				} else return FALSE;
 			} else return FALSE;
-		} else return FALSE;
-		
+		} else return FALSE; // no uid set
 	}
 	
 	
 	function AddNewAlertToUser($ID, $UID, $alert) {
 		//echo $alert;
 		$db = $this->database_object;
-		$SQL = "SET @CurrentAlerts = (SELECT Alerts FROM ".$this->db_prefix . "data WHERE ID=? AND UniqueID=?);
-		UPDATE ".$this->db_prefix . "data SET Alerts=CONCAT(@CurrentAlerts, ?) WHERE ID=? AND UniqueID=?";
-		//echo $SQL;
+		$SQL = "UPDATE ".$this->db_prefix . "data SET Alerts=concat(IFNULL(Alerts,''), '".$alert.",') WHERE ID=? AND UniqueID=?";
 		$heartbeat_action = $db->prepare($SQL, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));	
-		$alert = $alert . ',';
-		$params = array($ID, $UID, $alert, $ID, $UID);
+		$params = array($ID, $UID);
 		if($heartbeat_action->execute( $params )) return TRUE;
 		else return FALSE;
+	} 
+	
+	
+	function GetAlertsByUID() {
 		
-		
-		
-		//PrettyPrint($heartbeat_action->errorInfo());
 	}
-	 
  }
  
