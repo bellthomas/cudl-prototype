@@ -106,5 +106,9 @@ public boolean runBeat() {
 	}
 
 
+JSON Test:
+
+[{"name":"Brunston Surgery","vicinity":"Cinder Hill, Coleford","distance":4.0153841246317},{"name":"A M Medical Services UK Ltd","vicinity":"Unit 6 Parkend Road, Lydney","distance":7.0395292195896},{"name":"Dilke Memorial Hospital","vicinity":"","distance":7.6085761510401},{"name":"Ross On Wye Community Hospital","vicinity":"Alton St, Ross-on-Wye","distance":7.9892454434831},{"name":"Haigh Engineering Limited","vicinity":"Alton Rd, Ross on Wye","distance":8.2390922994665},{"name":"Athrodax Healthcare","vicinity":"Unit 1, Hawthorn Business Park, Drybrook","distance":8.3414050062429},{"name":"Colliers Court","vicinity":"Latimer Rd, Cinderford","distance":8.7635380722421},{"name":"Family Planning","vicinity":"Lydney & District Hospital, Lydney","distance":9.3257234002515},{"name":"Lydney & District Hospital","vicinity":"Grove Rd, Lydney","distance":9.3286133000143},{"name":"Llanarth Court Hospital","vicinity":"Llanarth Court, Llanarth Raglan, Abergavenny","distance":9.464530202905}]
+
 
 
