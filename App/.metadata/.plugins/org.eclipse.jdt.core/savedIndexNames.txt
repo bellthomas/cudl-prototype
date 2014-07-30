@@ -1,2 +1,0 @@
-INDEX VERSION 1.126+C:\Users\laptop\Documents\YRS\Emergancie\.metadata\.plugins\org.eclipse.jdt.core
-911089102.index
