@@ -65,15 +65,15 @@ if($_GET['lat'] && $_GET['long']) {
 /*
  * Pass test data to Request object
  */ 
-/*
-$emie_actions_test = array( 'LatLongToLocal');
+
+$emie_actions_test = array( 'NearestHospital');
 $emie_parameters_test = array(
 	array('lat' => 51.820878, 'long' => -2.697587 ),	// Liverpool
 );
 
 PrettyPrint($emie_actions);
 PrettyPrint($emie_parameters);
-*/
+
 
 /*
  * Loop through data, creating instantiated objects
@@ -81,47 +81,47 @@ PrettyPrint($emie_parameters);
 function MainExecuteRequest($emie_actions, $emie_parameters) {
 	global $MainExecuted;
 	if(sizeof($emie_actions) == sizeof($emie_parameters)) :
-	
+
 		$i = 0;
 
 		foreach($emie_actions as $action) {
-			
+
 			//generate unique name based on iteration of loop
 			$individual_variable_name = 'request' . $i; 
-			
+
 			//instantiated class with variable name
 			$$individual_variable_name = new EmergencieRequest($emie_actions[$i]);
-			
-			
-			
+
+
+
 			//generate unique name for URL return variable
 			$individual_request_url_name = $individual_variable_name . '_url';
-			
+
 			//assign parameters using iteration count to match the reflected arrays
 			$$individual_request_url_name = $$individual_variable_name->RequestParameters($emie_parameters[$i]);
-			
-			
-			
+
+
+
 			//create individual output variable name
 			$individual_raw_output_name = $individual_variable_name . '_output_raw';
-			
+
 			//get execute return, assign to unique variable
 			$$individual_raw_output_name = $$individual_variable_name->Execute($$individual_request_url_name);
-			
+
 			//create individual output variable name
 			$individual_output_name = $individual_variable_name . '_output';
-			
+
 			//get execute return, assign to unique variable
 			$$individual_output_name = $$individual_variable_name->GenerateOutput($$individual_raw_output_name);
-			
+
 			echo '<h3>'.$i.'</h3>';
 			//PrettyPrint(($$individual_variable_name));
 			//PrettyPrint(($$individual_request_url_name));
-			PrettyPrint($$individual_output_name);
+			echo (json_encode($$individual_output_name));
 			PrettyPrint($$individual_variable_name->GetNotices());
-			
+
  
-			
+
 			$i++;
 		}
 	else :

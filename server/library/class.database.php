@@ -139,7 +139,7 @@ class EmergencieDatabase {
 							  Longitude VARCHAR( 50 ),
 							  CountryCode VARCHAR( 8 ),
 							  Region VARCHAR( 50 ), 
-							  Alerts INT( 11 )',
+							  Alerts VARCHAR( 50 )',
 			),
 			array(
 				'services' => array('heartbeat_'),
@@ -290,14 +290,16 @@ class EmergencieDatabase {
 			$heartbeat_action = $db->prepare($SQL, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));	
 			if($heartbeat_action->execute()) {
 				$locations_array = $heartbeat_action->FetchAll();
-				$i = 0;
-				foreach($locations_array as $location) {
-					$locations_array[$i]['distance'] = $this->CalculateDistanceLatLong($long, $lat, $location['Longitude'], $location['Latitude']);
-					if($locations_array[$i]['distance'] > $radius)
-						$locations_array[$i] = NULL;
-					$i++;
-				}
-				return array_filter($locations_array);
+				if(is_array($locations_array)) {
+					$i = 0;
+					foreach($locations_array as $location) {
+						$locations_array[$i]['distance'] = $this->CalculateDistanceLatLong($long, $lat, $location['Longitude'], $location['Latitude']);
+						if($locations_array[$i]['distance'] > $radius)
+							$locations_array[$i] = NULL;
+						$i++;
+					}
+					return array_filter($locations_array);
+				} return FALSE;
 			}
 			else return FALSE;
 	
@@ -356,16 +358,20 @@ class EmergencieDatabase {
 	
 	
 	function AddNewAlertToUser($ID, $UID, $alert) {
-		
+		//echo $alert;
 		$db = $this->database_object;
-		$SQL = "UPDATE ".$this->db_prefix . "data SET Alerts=? WHERE ID=? AND UniqueID=?";
-		echo $SQL;
+		$SQL = "SET @CurrentAlerts = (SELECT Alerts FROM ".$this->db_prefix . "data WHERE ID=? AND UniqueID=?);
+		UPDATE ".$this->db_prefix . "data SET Alerts=CONCAT(@CurrentAlerts, ?) WHERE ID=? AND UniqueID=?";
+		//echo $SQL;
 		$heartbeat_action = $db->prepare($SQL, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));	
-		$alert = '/'.$alert;
-		$params = array($alert, $ID, $UID);
-		if($heartbeat_action->execute( $params )) echo 'yesyes';
-		else echo 'nono';
-		PrettyPrint($heartbeat_action->errorInfo());
+		$alert = $alert . ',';
+		$params = array($ID, $UID, $alert, $ID, $UID);
+		if($heartbeat_action->execute( $params )) return TRUE;
+		else return FALSE;
+		
+		
+		
+		//PrettyPrint($heartbeat_action->errorInfo());
 	}
 	 
  }

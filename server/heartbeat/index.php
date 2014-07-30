@@ -2,7 +2,7 @@
 // not a valid request
 //if( !isset($_REQUEST['emie_heartbeat'])) die();
 
-define(DEBUG, false);
+define(DEBUG, true);
 if(DEBUG){
 	ini_set('display_errors',1);
 	ini_set('display_startup_errors',1);
@@ -38,7 +38,7 @@ $db = new EmergencieDatabase('heartbeat');
 
 //PrettyPrint($db->HeartbeatMatrix(51.820878, -2.697587));
 // 
-//echo urlencode('{"emie_id":["435","465"], "emie_personal":["Harri","M"], "emie_location":["51.806433", "-2.717435"]}');
+//echo urlencode('{"emie_id":["56435","465"], "emie_personal":["Harri","M"], "emie_location":["51.806433", "-2.717435"]}');
 
 
 
@@ -83,7 +83,7 @@ elseif( isset($_REQUEST['emie_heartbeat_set_alert']) ) :
 			foreach($users as $user)
 				$db->AddNewAlertToUser($user['ID'], $user['UniqueID'], $alert_number);
 		
-			echo 1;
+			//echo 1;
 		
 		
 		} else echo 0;
