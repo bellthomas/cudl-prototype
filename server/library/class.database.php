@@ -153,6 +153,12 @@ class EmergencieDatabase {
 							  Time INT( 11 ),
 							  UniqueID VARCHAR( 50 )',
 			),
+			array(
+				'services' => array('heartbeat_'),
+				'table_name' => $this->db_prefix . 'identifiers',
+				'columns' => 'ID VARCHAR( 50 ) , 
+							  Token VARCHAR( 50 )',
+			),
 		);
 		
 		foreach($tables as $table) {
@@ -246,17 +252,11 @@ class EmergencieDatabase {
 	 
 	 
 	 
-	 
-	function getAllTableData($table) {
-		$table = $this->db_prefix . $table;
-            $query = $this->database_object->prepare("SELECT * FROM $table");
-            $query->execute();
-            return $query->fetchAll();
-	}
-	
-	function DataPrint() {
-		PrettyPrint($this);
-	}
+	/**
+	 * Method to check if latitude and longitude are legal
+	 *
+	 * @return bool TRUE if valid, FALSE if not.
+	 */
 	
 	function LatLongValid($lat, $long) {
 		$valid = true; // innocent until proved guilty
@@ -331,12 +331,24 @@ class EmergencieDatabase {
 	}
 	
 	
-	
+	/**
+	 * Method Add New Alert to the alerts table
+	 *
+	 * @param string array $personal_data, string array $location, string array $id
+	 * @return int last_insert_id (ID for created alert), FALSE if unsuccessful.
+	 */
+	 
 	function CreateNewHeartbeatAlert($personal_data, $location, $id) {
 		$id = $id[0].$id[1];
+		
+		// verify id is set
 		if(trim($id) !== '') {
 			$db = $this->database_object;
+			
+			//check to see if data and location are valid
 			if(is_array($personal_data) && is_array($location)) {
+				
+				//  Find newest of old alerts from this device
 				$OldCheck = "SELECT MAX(Time) FROM ".$this->db_prefix . "alerts WHERE UniqueID=?;";
 				$heartbeat_old_alerts = $db->prepare($OldCheck, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));
 				$params = array($id);
@@ -344,12 +356,14 @@ class EmergencieDatabase {
 					$old_time = $heartbeat_old_alerts->fetch();
 					$new_time = time();
 					$time_difference = $new_time - $old_time[0];
+					
+					// only allow new heartbeat alert after 20 minutes of the last being sent
 					if($time_difference > 1200 /* 20 minutes */) {
 						$SQL = "INSERT INTO ".$this->db_prefix . "alerts (ID, Name, Gender, Latitude, Longitude, Time, UniqueID) VALUES (NULL, ?, ?, ?, ?, ?, ?); SELECT LAST_INSERT_ID();";
 						$heartbeat_alert = $db->prepare($SQL, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));
 						$gender = strtoupper($personal_data[1]);
 						$params = array($personal_data[0], $gender, $location[0], $location[1], time(), $id);
-						if($heartbeat_alert->execute( $params )) return $db->lastInsertId();
+						if($heartbeat_alert->execute( $params )) return $db->lastInsertId(); // return successfully created entry id
 						else return FALSE;
 					} else return FALSE; // last alert from this device not long ago enough
 				} else return FALSE;
@@ -358,6 +372,13 @@ class EmergencieDatabase {
 	}
 	
 	
+	/**
+	 * Method to Add Alert Notification to a user's Heartbeat record
+	 *
+	 * @param integer $ID (id of device's entry in data table), string $UID (device identifier), integer $alert (id of alert entry)
+	 * @return bool TRUE if update successful, FALSE if unsuccessful.
+	 */
+	 
 	function AddNewAlertToUser($ID, $UID, $alert) {
 		//echo $alert;
 		$db = $this->database_object;
@@ -368,9 +389,127 @@ class EmergencieDatabase {
 		else return FALSE;
 	} 
 	
-	
-	function GetAlertsByUID() {
+	/**
+	 * Method to Retrieve the ID of a Devices Alerts
+	 *
+	 * @param integer $ID (id of device's entry in data table), string $UID (device identifier), integer $alert (id of alert entry)
+	 * @return bool TRUE if update successful, FALSE if unsuccessful.
+	 */
+	 
+	function GetAlertsByUID($UID) {
+		
+		$db = $this->database_object;
+		if(trim($UID) !== '') :
+			$SQL = "SELECT Alerts FROM ".$this->db_prefix . "data WHERE UniqueID=?";
+			$heartbeat_alerts = $db->prepare($SQL, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));	
+			$params = array($UID);
+			if($heartbeat_alerts->execute( $params )) {
+				
+				if($results = $heartbeat_alerts->FetchAll()) {
+				
+					$results = $results[0]['Alerts'];
+					$results = array_filter(explode(',', $results));
+					
+					if(is_array($results)) {
+						$request_data = '';
+						foreach($results as $result) 
+							$request_data[] = $this->GetAlertData((int)$result, 43200);
+						//PrettyPrint($request_data);
+						return $request_data;
+					} else return FALSE; // isn't an array
+				} else return FALSE; // no results from query
+			} else return FALSE; // not executed
+		else : 
+			return FALSE; // no uid
+		endif;
 		
 	}
+	
+	
+	function GetAlertData($id, $age = 1200) {
+		
+		$db = $this->database_object;
+		if(isset($id) && is_int($id)) {
+			$SQL = "SELECT * FROM ".$this->db_prefix . "alerts WHERE ID=?";
+			$heartbeat_alerts = $db->prepare($SQL, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));	
+			$params = array($id);
+			if($heartbeat_alerts->execute( $params )) {
+				if($results = $heartbeat_alerts->FetchAll()) {
+					
+					$old_time = $results[0]['Time'];
+					$new_time = time();
+					$time_difference = $new_time - $old_time;
+					if($time_difference < $age) {
+						
+						$result['name'] = $results[0]['Name'];
+						$result['gender'] = $results[0]['Gender'];
+						$result['lat'] = $results[0]['Latitude'];
+						$result['long'] = $results[0]['Longitude'];
+						$result['age'] = $time_difference;
+
+						return $result;
+					} else return FALSE; // too old, ignore
+				} else return FALSE; // no return data from query
+			} else return FALSE; // not executed
+		} else return FALSE; // no id or not valid
+	}
+	
+	
+	
+	function CreateUniqueID($first = TRUE, $Token = NULL) {
+		// use UUID:v5() for Token
+		// use  UUID:v4() for ID 
+		$db = $this->database_object;
+		$ID = UUID::v4();
+		if((!$first && !$Token) || ($first))
+			$Token = UUID::v5( UUID_KEY , md5(uniqid(rand(), true)));
+		
+		$SQL = "SELECT * FROM ".$this->db_prefix . "identifiers WHERE ID=?";
+		$heartbeat_identifiers = $db->prepare($SQL, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));	
+		$params = array($ID);
+		if($heartbeat_identifiers->execute( $params )) {
+
+			if(!$result = $heartbeat_identifiers->FetchAll()) {
+				$SQL = "INSERT INTO ".$this->db_prefix . "identifiers (ID, Token) VALUES (?, ?);";
+				$heartbeat_identifier_create = $db->prepare($SQL, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));
+				$params = array($ID, $Token);
+				if($heartbeat_identifier_create->execute( $params )) {
+					$output['ID'] = $ID;
+					$output['token'] = $Token;
+					echo json_encode($output);
+					return $output;
+				} else return FALSE;
+			} else {
+				$this->CreateUniqueID(FALSE, $Token); //ID already exists! Regen.
+			}
+
+		} else return FALSE; // not executed
+
+		
+		echo $ID;
+		echo '<br>';
+		echo $Token;
+		
+	}
+	
+	
+	
+	function RemoveID($ID, $Token) {
+
+		$db = $this->database_object;
+		$SQL = "DELETE FROM ".$this->db_prefix . "identifiers WHERE ID=? and Token=?";
+		$heartbeat_delete = $db->prepare($SQL, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));	
+		$params = array($ID, $Token);
+		if($heartbeat_delete->execute( $params ) !== 0) {
+			$SQL = "DELETE FROM ".$this->db_prefix . "data WHERE UniqueID=?";
+			$heartbeat_delete_data = $db->prepare($SQL, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));	
+			$params = array($ID);
+			$heartbeat_delete_data->execute( $params );
+			return TRUE;
+		}
+		else return FALSE; // not found/error
+		
+	}
+	
  }
  

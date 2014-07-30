@@ -25,11 +25,14 @@ require_once('../library/functions.helper.php');
  */
 require_once('../library/class.database.php');
 require_once('../library/class.request.php');
+require_once('../library/class.uuid.php');
 
 $db = new EmergencieDatabase('heartbeat');
 
 //if($db->HeartbeatUpdate(84758, 51.816433, -2.727435)) echo '1';
 //else echo '0';
+
+//PrettyPrint($_REQUEST);
 
 //84756 - np253sw
 //84757 - np253xp
@@ -38,23 +41,24 @@ $db = new EmergencieDatabase('heartbeat');
 
 //PrettyPrint($db->HeartbeatMatrix(51.820878, -2.697587));
 // 
-//echo urlencode('{"emie_id":["56435","465"], "emie_personal":["Harri","M"], "emie_location":["51.806433", "-2.717435"]}');
+//echo urlencode('{"emie_id":["56435","465"], "emie_personal":["Harri","M"], "emie_location":["51.816433", "-2.727435"]}');
+//echo urlencode('{"emie_id":"84758"}');
 
 
 
 /*
  * Check if Heartbeat update has been requested
  */
-if( isset($_REQUEST['emie_heartbeat']) ) :
+if( isset($_REQUEST['emie_heartbeat']) ) {
 
 	$request_data = json_decode($_REQUEST['emie_heartbeat']);
 	
-	PrettyPrint($request_data);
+	//PrettyPrint($request_data);
 	
 	//$request_data->emie_heartbeat;  // array, 2 values, uuid stuff
 	//$request_data->emie_location;  // array, 2 values, lat and long
 	
-	PrettyPrint();
+	
 	if($db->HeartbeatUpdate($request_data->emie_id[0] . $request_data->emie_id[1], 
 	$request_data->emie_location[0], 
 	$request_data->emie_location[1])) echo 1;
@@ -69,7 +73,7 @@ if( isset($_REQUEST['emie_heartbeat']) ) :
 /*
  * Check if Heartbeat set alert has been requested
  */
-elseif( isset($_REQUEST['emie_heartbeat_set_alert']) ) :
+} elseif( isset($_REQUEST['emie_heartbeat_set_alert']) ) {
 
 	$request_data = json_decode($_REQUEST['emie_heartbeat_set_alert']);
 	
@@ -92,21 +96,46 @@ elseif( isset($_REQUEST['emie_heartbeat_set_alert']) ) :
 
 
 
+/*
+ * Check if Heartbeat get alerts has been requested
+ */
+} elseif( isset($_REQUEST['emie_heartbeat_get_alerts']) ) {
+
+	$request_data = json_decode($_REQUEST['emie_heartbeat_get_alerts']);
+	
+	if($output = $db->GetAlertsByUID($request_data->emie_id)) {
+		foreach($output as $alert) {
+			echo json_encode($alert);
+			echo '<br>';
+		}
+		//PrettyPrint($output);
+	} else echo 0;
 
 
 
 
+/*
+ * Create ID if request
+ */
+} elseif( isset($_REQUEST['emie_heartbeat_init']) && $_REQUEST['emie_heartbeat_init'] == 'true' ) {
+	$db->CreateUniqueID();
 
+
+/* 
+ * Remove ID if requested
+ *
+ * example - {"ID":"4a8c757a-852f-499b-8c13-f932ab1d2eca","token":"f8d64ea0-b7e8-58f1-82e3-407498567d7d"}
+ */
+} elseif( isset($_REQUEST['emie_heartbeat_remove'])) {
+
+	$request_data = json_decode($_REQUEST['emie_heartbeat_remove']);
+	
+	if($db->RemoveID($request_data->ID, $request_data->token)) echo 1;
+	else echo 0;
 
 
 // Invalid Request :(
-else: 
-
-	echo 0;
-
-endif;
-
-
+} else echo 0;
 ShowNotices();
 $db->AddSystemNoticesToLog();
 ?>
