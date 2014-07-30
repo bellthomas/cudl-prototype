@@ -91,5 +91,13 @@ public class ServerUtil {
 	    return ret;
 	}
 	
+	public JSONObject[] getJsonsFromString(String string) throws JSONException{
+		String[] strings = string.split("%%%%");
+		JSONObject[] jsons = new JSONObject[strings.length];
+		for(int i = 0; i < strings.length; i++) {
+			jsons[i] = new JSONObject(strings[i]);
+		}
+		return jsons;
+	}
 	
 }
