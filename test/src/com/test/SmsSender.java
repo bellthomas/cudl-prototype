@@ -1,35 +1,53 @@
 package com.test;
 
-import java.util.Map;
-import java.util.HashMap;
+import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.EditText;
  
-import com.twilio.sdk.resource.instance.Account;
-import com.twilio.sdk.TwilioRestClient;
-import com.twilio.sdk.TwilioRestException;
-import com.twilio.sdk.resource.factory.MessageFactory;
-import com.twilio.sdk.resource.instance.Message;
-import java.util.ArrayList;
-import java.util.List;
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
+public class SmsSender extends ActionBarActivity {
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_main);
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.main, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle action bar item clicks here. The action bar will
+		// automatically handle clicks on the Home/Up button, so long
+		// as you specify a parent activity in AndroidManifest.xml.
+		int id = item.getItemId();
+		if (id == R.id.action_settings) {
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
+	}
+    /** Called when the activity is first created. */
+    //private EditText messageNumber;
+    
  
-public class SmsSender {
+    /*public void sayHello(View v) {
  
-    /* Find your sid and token at twilio.com/user/account */
-    public static final String ACCOUNT_SID = "AC931868207edb5bf3ab2d76816f376364";
-    public static final String AUTH_TOKEN = "99bc9e3bec39aebda4290d3bb5617081";
+        String _messageNumber="+447715975524";
+        String messageText = "Hi , Just SMSed to say hello";
  
-    public static void main(String[] args) throws TwilioRestException {
- 
-        TwilioRestClient client = new TwilioRestClient(ACCOUNT_SID, AUTH_TOKEN);
- 
-        Account account = client.getAccount();
- 
-        MessageFactory messageFactory = account.getMessageFactory();
-        List<NameValuePair> params = new ArrayList<NameValuePair>();
-        params.add(new BasicNameValuePair("To", "+447715975524")); // Replace with a valid phone number for your account.
-        params.add(new BasicNameValuePair("From", "+441673372018")); // Replace with a valid phone number for your account.
-        params.add(new BasicNameValuePair("Body", "It works from phone"));
-        Message sms = messageFactory.create(params);
-    }
+        Intent sendIntent = new Intent(Intent.ACTION_VIEW);
+        sendIntent.setData(Uri.parse("sms:"+_messageNumber));
+        sendIntent.putExtra("sms_body", messageText);
+        startActivity(sendIntent);
+    }*/
 }
