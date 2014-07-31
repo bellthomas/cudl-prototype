@@ -132,10 +132,11 @@ public class ServerUtil {
 			Map<String,Object> map = lists.get(0);
 			if(map.get("distance") instanceof String) {
 				String str_dist = (String)map.get("distance");
-				map.put("distance",Double.parseDouble(str_dist.substring(1,str_dist.length() - 1)));
+				map.put("distance",Double.parseDouble(str_dist));
 			}
 			return map;
 		}catch(Exception e) {
+			e.printStackTrace();
 			Map<String,Object> error = new HashMap<String,Object>();
 			error.put("name","ERROR");
 			error.put("distance",Double.MAX_VALUE);
@@ -151,7 +152,7 @@ public class ServerUtil {
 			Map<String,Object> map = lists.get(0);
 			if(map.get("distance") instanceof String) {
 				String str_dist = (String)map.get("distance");
-				map.put("distance",Double.parseDouble(str_dist.substring(1,str_dist.length() - 1)));
+				map.put("distance",Double.parseDouble(str_dist));
 			}
 			return map;
 		}catch(Exception e) {
@@ -176,7 +177,7 @@ public class ServerUtil {
 		try{
 			for(Map<String,Object> map : lists) {
 				String str_dist = (String)map.get("distance");
-				map.put("distance",Double.parseDouble(str_dist.substring(1,str_dist.length() - 1)));
+				map.put("distance",Double.parseDouble(str_dist));
 			}
 		}catch(Exception e) {
 			Map<String,Object> error = new HashMap<String,Object>();
