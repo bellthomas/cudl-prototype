@@ -57,9 +57,15 @@ public class JsonHelper {
 		return object.toString();
 	}
 	
+	
+	public static List<List<Map<String,Object>>> getListedListJsons(String string) {
+		return null; //TODO
+	}
+	
+	
 	//Special json - server => client parsing class - since we use odd formatting
-	public static List<Map<String,Object>> getListedJsonsWithCommaFormatting(String string,boolean splitBrs) {
-		String[] strings = string.split("%%%%");
+	public static List<Map<String,Object>> getListedJsonsWithCommaFormatting(String string) {
+		String[] strings = string.replace("<br>","").split("%%%%");
 		List<Map<String,Object>> maps = new ArrayList<Map<String,Object>>();
 		for(String json : strings) {
 			json = json.substring(1, json.length() - 1);
@@ -75,10 +81,14 @@ public class JsonHelper {
 				}else
 				if(value.indexOf(".") != -1) {
 					map.put(key, Double.parseDouble(value));
-				}else {
+				}else
+				if(value == "null") {
+					map.put(key, null);
+				}
+				else {
 					map.put(key,Long.parseLong(value));
 				}
-				System.out.println(map.get(key));
+				//System.out.println(map.get(key));
 			}
 			maps.add(map);	
 		}

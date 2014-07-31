@@ -10,6 +10,7 @@ $MainExecuted = false;
 
 define(DEBUG, true);
 
+
 /*
  * Include and Init Performance Monitor
  */
@@ -33,7 +34,11 @@ require_once('library/class.request.php');
 
 $db = new EmergencieDatabase('main');
 
+//$array['emie_actions'] = array('action1', 'action2');
+//$array['emie_parameters'] = array(array('lat', 'long'), array('search'));
 
+
+//echo json_encode($array);
 /*
  * Instantiate Request Class
  */
@@ -66,13 +71,14 @@ if($_GET['lat'] && $_GET['long']) {
  * Pass test data to Request object
  */ 
 
-$emie_actions_test = array( 'NearestHospital');
+$emie_actions_test = array( 'NearestHospitals');
 $emie_parameters_test = array(
-	array('lat' => 51.820878, 'long' => -2.697587 ),	// Liverpool
+	//array('search' => 'epilepsy' ),	// Liverpool
+	array('lat' => 51, 'long' => -2 ),	// Liverpool
 );
 
-PrettyPrint($emie_actions);
-PrettyPrint($emie_parameters);
+//PrettyPrint($emie_actions);
+//PrettyPrint($emie_parameters);
 
 
 /*
@@ -107,20 +113,30 @@ function MainExecuteRequest($emie_actions, $emie_parameters) {
 
 			//get execute return, assign to unique variable
 			$$individual_raw_output_name = $$individual_variable_name->Execute($$individual_request_url_name);
+			
+			
+			if($$individual_raw_output_name) :
+			
+				//create individual output variable name
+				$individual_output_name = $individual_variable_name . '_output';
+		
+				//get execute return, assign to unique variable
+				$$individual_output_name = $$individual_variable_name->GenerateOutput($$individual_raw_output_name);
+	
+				echo '<br>';
 
-			//create individual output variable name
-			$individual_output_name = $individual_variable_name . '_output';
-
-			//get execute return, assign to unique variable
-			$$individual_output_name = $$individual_variable_name->GenerateOutput($$individual_raw_output_name);
-
-			echo '<h3>'.$i.'</h3>';
+			else :
+			
+				echo 'error';
+			
+			endif;
+			//echo '<h3>'.$i.'</h3>';
 			//PrettyPrint(($$individual_variable_name));
 			//PrettyPrint(($$individual_request_url_name));
-			echo (json_encode($$individual_output_name));
-			PrettyPrint($$individual_variable_name->GetNotices());
+			//PrettyPrint (($$individual_output_name));
 
- 
+			//PrettyPrint($$individual_variable_name->GetNotices());
+
 
 			$i++;
 		}
@@ -129,9 +145,18 @@ function MainExecuteRequest($emie_actions, $emie_parameters) {
 	endif;
 	$MainExecuted = true;
 }
-if(!$MainExecuted && isset($emie_actions_test) && isset($emie_parameters_test))
-	MainExecuteRequest($emie_actions_test, $emie_parameters_test);
+		//MainExecuteRequest($emie_actions_test, $emie_parameters_test);
+$request_data = json_decode($_REQUEST['emie_request']);
+//PrettyPrint($request_data);
+if(isset($request_data->emie_actions) && isset($request_data->emie_parameters)) :
 
+
+	//PrettyPrint($request_data->emie_actions);
+	//PrettyPrint($request_data->emie_parameters);
+	if(!$MainExecuted) 
+		MainExecuteRequest($request_data->emie_actions, $request_data->emie_parameters);
+	
+endif;
 
 /*
 $LatLongToLocal = new EmergencieRequest('NearestHospital');

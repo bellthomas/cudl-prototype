@@ -12,9 +12,9 @@ class EmergencieRequest {
 	public $request_type;
 	public $request_notices = NULL;
 	protected $allowed_request_types = array('LatLongToLocal',
-											 'NearestHospital',
-											 'GetArticlesAboutMedicalCondition',
-											 'NearestStreet'
+											 'NearestHospitals',
+											 'NearestStreet',
+											 'GetArticles'
 											);
 											
 	protected $geonames_username = GEONAMES_USERNAME;
@@ -92,9 +92,9 @@ class EmergencieRequest {
 			 */
 			case 'LatLongToLocal' :
 				if($parameters) :
-					if(isset($parameters['lat']) && isset($parameters['long'])) {
-						if($this->AreLatAndLongValid($parameters['lat'], $parameters['long']))
-							$RequestURL = 'http://api.geonames.org/findNearbyPlaceNameJSON?lat='.$parameters["lat"].'&lng='.$parameters["long"]. '&username=' . $this->geonames_username;
+					if(isset($parameters->lat) && isset($parameters->long)) {
+						if($this->AreLatAndLongValid($parameters->lat, $parameters->long))
+							$RequestURL = 'http://api.geonames.org/findNearbyPlaceNameJSON?lat='.$parameters->lat.'&lng='.$parameters->long. '&username=' . $this->geonames_username;
 						else
 							$this->request_notices[] = 'LatLongToLocal - lat and long set but not valid.';	
 					} else {
@@ -114,14 +114,14 @@ class EmergencieRequest {
 			 *
 			 * @param float/integer $parameters['lat'] (Latitude for Request), float/integer $parameters['long'] (Longitude for Request)
 			 */
-			case 'NearestHospital' :
+			case 'NearestHospitals' :
 				$radius = 20000; // in metres
 				if($parameters) :
-					if(isset($parameters['lat']) && isset($parameters['long'])) {
-						if($this->AreLatAndLongValid($parameters['lat'], $parameters['long'])){
-							$RequestURL = 'https://maps.googleapis.com/maps/api/place/search/json?types=hospital&location='.$parameters["lat"].','.$parameters["long"]. '&radius='.$radius.'&key=' . $this->google_places_api_key;
-							$this->latitude = $parameters["lat"];
-							$this->longitude = $parameters["long"];
+					if(isset($parameters->lat) && isset($parameters->long)) {
+						if($this->AreLatAndLongValid($parameters->lat, $parameters->long)){
+							$RequestURL = 'https://maps.googleapis.com/maps/api/place/search/json?types=hospital&location='.$parameters->lat.','.$parameters->long. '&radius='.$radius.'&key=' . $this->google_places_api_key;
+							$this->latitude = $parameters->lat;
+							$this->longitude = $parameters->long;
 						}else
 							$this->request_notices[] = 'NearestHospital - lat and long set but not valid.';	
 					} else {
@@ -135,20 +135,19 @@ class EmergencieRequest {
 
 		
 			/**
-	 		 * Case: GetArticlesAboutMedicalCondition
+	 		 * Case: GetArticles
 			 *
 			 * @param string $search (Topic to Search for)
 			 */
-			case 'GetArticlesAboutMedicalCondition' :
+			case 'GetArticles' :
 				if($parameters) :
-					if(isset($parameters['search'])) {
-						$RequestURL = 'http://wsearch.nlm.nih.gov/ws/query?db=healthTopics&term='.urlencode($parameters["search"]); 
-						echo $RequestURL;
+					if(isset($parameters->search)) {
+						$RequestURL = 'http://wsearch.nlm.nih.gov/ws/query?db=healthTopics&term='.urlencode($parameters->search); 
 					} else {
-						$this->request_notices[] = 'GetArticlesAboutMedicalCondition - search not set, but parameters variable passed.';	
+						$this->request_notices[] = 'GetArticles - search not set, but parameters variable passed.';	
 					}
 				else :
-					$this->request_notices[] = 'GetArticlesAboutMedicalCondition - no parameters set.';
+					$this->request_notices[] = 'GetArticles - no parameters set.';
 				endif;
 				break;
 
@@ -161,9 +160,9 @@ class EmergencieRequest {
 			 */
 			case 'NearestStreet' :
 				if($parameters) :
-					if(isset($parameters['lat']) && isset($parameters['long'])) {
-						if($this->AreLatAndLongValid($parameters['lat'], $parameters['long']))
-							$RequestURL = 'http://api.geonames.org/findNearbyStreetsOSMJSON?lat='.$parameters["lat"].'&lng='.$parameters["long"]. '&maxRows=1&username=' . $this->geonames_username;
+					if(isset($parameters->lat) && isset($parameters->long)) {
+						if($this->AreLatAndLongValid($parameters->lat, $parameters->long))
+							$RequestURL = 'http://api.geonames.org/findNearbyStreetsOSMJSON?lat='.$parameters->lat.'&lng='.$parameters->long. '&maxRows=1&username=' . $this->geonames_username;
 						else
 							$this->request_notices[] = 'NearestStreet - lat and long set but not valid.';	
 					} else {
@@ -272,6 +271,9 @@ class EmergencieRequest {
 				$output = json_decode($output);
 				$returndata['name'] = $output->streetSegment->name; 
 				$returndata['distance'] = $output->streetSegment->distance;  //km
+				if(!$returndata['name']) $returndata['name'] = 'Data Unavailable';
+				if(!$returndata['distance']) $returndata['distance'] = 'Data Unavailable';
+				echo json_encode($returndata);
 				return $returndata;
 				break;
 			
@@ -281,47 +283,71 @@ class EmergencieRequest {
 				$returndata['name'] = $output->geonames[0]->name; 
 				$returndata['distance'] = $output->geonames[0]->distance; //km
 				$returndata['countryName'] = $output->geonames[0]->countryName;
+				if(!$returndata['name']) $returndata['name'] = 'Data Unavailable';
+				if(!$returndata['distance']) $returndata['distance'] = 'Data Unavailable';
+				if(!$returndata['countryName']) $returndata['countryName'] = 'Data Unavailable';
 				return $returndata;
 				break;
 			
 
-			case 'NearestHospital' :
+			case 'NearestHospitals' :
 				$radius = 10;
 				$output = json_decode($output);
 				$output = $output->results;
 				$i = 0;
-				foreach($output as $data) {
-					$hospitals[$i]['name'] = $data->name;
-					$hospitals[$i]['vicinity'] = $data->vicinity;
-					$hospitals[$i]['distance'] = $db->CalculateDistanceLatLong($this->longitude, $this->latitude, $data->geometry->location->lng, $data->geometry->location->lat);
-					if($hospitals[$i]['distance'] > $radius) $hospitals[$i] = NULL;
-					$i++;
-				}
-				$hospitals = array_filter($hospitals);
-				//PrettyPrint($hospitals);
-				usort($hospitals, 'compareByName');
-				return $hospitals;
+
+					foreach($output as $data) {
+	
+						$hospitals[$i]['name'] = $data->name;
+						$hospitals[$i]['vicinity'] = $data->vicinity;
+						$hospitals[$i]['distance'] = $db->CalculateDistanceLatLong($this->longitude, $this->latitude, $data->geometry->location->lng, $data->geometry->location->lat);
+						if($hospitals[$i]['distance'] > $radius) $hospitals[$i] = NULL;
+						$i++;
+					} 
+					$hospitals = array_filter($hospitals);
+					//PrettyPrint($hospitals);
+					usort($hospitals, 'compareByName');
+					
+					$i = 0;		
+					foreach($hospitals as $hospital) {
+						while ($value = current($hospital)) {
+							$hospitals[$i][key($hospital)] = str_replace(',', '<comma>', $value);
+							next($hospital);
+						}					
+						echo json_encode($hospitals[$i]);
+						echo '%%%%'; // hospital the last element
+						$i++;
+					}
+
+					return $hospitals;
 				break;
 				
-			case 'GetArticlesAboutMedicalCondition' :
+			case 'GetArticles' :
 			
 				$p = xml_parser_create();
 				xml_parse_into_struct($p, $output, $vals, $index);
 				xml_parser_free($p);
-				$i = $articles = 0;
+				$i = 0;
+				$articles = 0;
 				$documents = array();
-				while($articles <= 3) :
+				while($articles <= 2 & $i < 100) :
 					if($vals[$i]['tag'] == 'DOCUMENT' && isset($vals[$i]['attributes']) && filter_var($vals[$i]['attributes']['URL'], FILTER_VALIDATE_URL)){
-						$documents[] = $vals[$i]['attributes']['URL'];
+						$documents['article_'.$articles] = $vals[$i]['attributes']['URL'];
 						$articles++;
 					}
 					$i++;
 				endwhile;
-				return $documents;
+				$k = 0;
+				foreach($documents as $doc) {
+					$response['article_'.$k] = str_replace(':', '<colon>', $doc);
+					$k++;
+				}
+				echo json_encode($response);
+				return $response;
 				break; 
 				
 			default : 
-				return json_decode($output);
+				return ($output);
 				break;
 		
 		endswitch;
