@@ -83,6 +83,7 @@ class EmergencieRequest {
 
 	function RequestParameters($parameters = NULL) {
 		$RequestURL = '';
+		//PrettyPrint($parameters);
 		switch ($this->request_type) :
 		
 			/**

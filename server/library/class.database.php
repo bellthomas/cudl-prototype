@@ -193,9 +193,11 @@ class EmergencieDatabase {
 	 * @return bool TRUE if no problems, FALSE if error occured.
 	 */
 	function HeartbeatUpdate($UID, $lat, $long) {
+		
 		global $Notices;
-		if($this->db_prefix == 'heartbeat_' && trim($UID) !== '') {
+		if($this->db_prefix == 'heartbeat_') {
 			$db = $this->database_object;
+
 			$SQL = "SELECT `ID` FROM `".$this->db_prefix . 'data'."` WHERE `UniqueID` = ?";
 			$heartbeat = $db->prepare($SQL, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));	
 			$params = array($UID);
@@ -205,7 +207,7 @@ class EmergencieDatabase {
 			
 			if($UIDExists && $this->LatLongValid($lat, $long)) : 
 				$index = $UIDExists[0]['ID'];
-				
+
 				// Emergencie Request to collect region data
 				$Regions = new EmergencieRequest('LatLongToLocal');
 				$Regions->LatLongToPostCode($lat, $long);
@@ -227,7 +229,7 @@ class EmergencieDatabase {
 				
 				
 			elseif($this->LatLongValid($lat, $long)) :
-			
+
 				// Emergencie Request to collect region data
 				$Regions = new EmergencieRequest('LatLongToLocal');
 				$Regions->LatLongToPostCode($lat, $long);
@@ -339,7 +341,7 @@ class EmergencieDatabase {
 	 */
 	 
 	function CreateNewHeartbeatAlert($personal_data, $location, $id) {
-		$id = $id[0].$id[1];
+		$id = $id[0];
 		
 		// verify id is set
 		if(trim($id) !== '') {
@@ -429,7 +431,7 @@ class EmergencieDatabase {
 	function GetAlertData($id, $age = 1200) {
 		
 		$db = $this->database_object;
-		if(isset($id) && is_int($id)) {
+		if(isset($id)) {
 			$SQL = "SELECT * FROM ".$this->db_prefix . "alerts WHERE ID=?";
 			$heartbeat_alerts = $db->prepare($SQL, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));	
 			$params = array($id);

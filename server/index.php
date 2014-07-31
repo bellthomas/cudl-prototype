@@ -71,10 +71,10 @@ if($_GET['lat'] && $_GET['long']) {
  * Pass test data to Request object
  */ 
 
-$emie_actions_test = array( 'NearestHospitals');
+$emie_actions_test = array( 'NearestStreet');
 $emie_parameters_test = array(
 	//array('search' => 'epilepsy' ),	// Liverpool
-	array('lat' => 51, 'long' => -2 ),	// Liverpool
+	array('lat' => 51.820878, 'long' => -2.697587 ),	// Liverpool
 );
 
 //PrettyPrint($emie_actions);
